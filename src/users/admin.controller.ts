@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Patch } from '@nestjs/common';
 
 @Controller('admin')
 export class AdminController {
@@ -14,12 +14,12 @@ export class AdminController {
     return { msg: `This is the admin user by ID route: ${id}` };
   }
 
-  @Get('users/:id/block')
+  @Patch('users/:id/block')
   blockUser(@Param('id', ParseIntPipe) id: string) {
     return { msg: `This is the admin block user route: ${id}` };
   }
 
-  @Get('users/:id/unblock')
+  @Patch('users/:id/unblock')
   unblockUser(@Param('id', ParseIntPipe) id: string) {
     return { msg: `This is the admin unblock user route: ${id}` };
   }
