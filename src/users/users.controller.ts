@@ -1,12 +1,22 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
+  @Get('me')
   getUsers() {
-    return { msg: 'This is the users route' };
+    return { msg: 'This is the current user route' };
+  }
+
+  @Patch('me')
+  updateUser() {
+    return { msg: 'This is the current user update route' };
+  }
+
+  @Patch('change-password')
+  changePassword() {
+    return { msg: 'This is the current user change password route' };
   }
 }
