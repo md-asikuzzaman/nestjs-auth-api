@@ -7,7 +7,7 @@ export class UsersController {
 
   @Get('me')
   getUsers() {
-    return { msg: 'This is the current user route' };
+    return this.usersService.getUser();
   }
 
   @Patch('me')
