@@ -1,4 +1,5 @@
 import { Controller, Post } from '@nestjs/common';
+import { Message } from 'src/common/decorators/message.decorator';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -21,6 +22,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Message('Token refreshed successfully')
   refreshToken() {
     return { msg: 'This is the refresh token route' };
   }
