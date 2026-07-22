@@ -23,7 +23,7 @@ export class AuthController {
 
   @Post('logout')
   logout() {
-    return { msg: 'This is the logout route' };
+    return this.authService.logout('userId'); // Replace 'userId' with actual user ID from request context
   }
 
   @Post('refresh')
