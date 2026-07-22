@@ -1,9 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { Message } from 'src/common/decorators/message.decorator';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from 'src/users/dto/auth.dto';
 import { Public } from './decorators/public.decorator';
 import { Roles } from './decorators/roles.decorator';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -22,14 +23,15 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout() {
-    return this.authService.logout('userId'); // Replace 'userId' with actual user ID from request context
+  logout(@Req() req) {
+    return this.authService.logout(req.user.id);
   }
 
+  @Public()
+  @UseGuards(AuthGuard('jwt-refresh')) // Uses refresh token strategy instead of standard access JWT
   @Post('refresh')
-  @Message('Token refreshed successfully')
-  refreshToken() {
-    return { msg: 'This is the refresh token route' };
+  refreshTokens(@Req() req) {
+    return this.authService.refreshTokens(req.user.sub, req.user.refreshToken);
   }
 
   @Roles('ADMIN')

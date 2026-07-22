@@ -74,6 +74,33 @@ export class AuthService {
     return true;
   }
 
+  // ADDED: Refresh tokens handler
+  async refreshTokens(userId: string, refreshToken: string): Promise<Tokens> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    // Verify user exists, has a stored refresh token hash, and is not blocked
+    if (!user || !user.hashed_refresh_token || user.isBlocked) {
+      throw new ForbiddenException('Access Denied');
+    }
+
+    // Compare incoming raw refresh token with stored hash
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.hashed_refresh_token,
+    );
+
+    if (!refreshTokenMatches) {
+      throw new ForbiddenException('Access Denied');
+    }
+
+    // Generate fresh tokens and update the refresh token hash in DB
+    const tokens = await this.getTokens(user.id, user.email, user.role);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+    return tokens;
+  }
+
   private async getTokens(
     userId: string,
     email: string,
@@ -83,11 +110,11 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
-        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
+        secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
         expiresIn: '15m',
       }),
       this.jwtService.signAsync(jwtPayload, {
-        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
+        secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
         expiresIn: '7d',
       }),
     ]);
