@@ -8,6 +8,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
@@ -50,6 +51,7 @@ export class AuthController {
     return this.authService.refreshTokens(req.user.sub, req.user.refreshToken);
   }
 
+  @ApiTags('Admin only')
   @Roles('ADMIN')
   @Post('admin-only')
   adminRoute() {
