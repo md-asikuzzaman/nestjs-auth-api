@@ -30,6 +30,10 @@ async function bootstrap() {
     .setDescription('Production-ready authentication API using NestJS')
     .setVersion('1.0')
     .addBearerAuth()
+    .addServer('http://localhost:9000', 'Local Environment')
+    .addServer('https://dev-api.example.com', 'Development')
+    .addServer('https://staging-api.example.com', 'Staging')
+    .addServer('https://api.example.com', 'Production')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
