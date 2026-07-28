@@ -4,17 +4,34 @@ import { LoginDto, RegisterDto } from 'src/users/dto/auth.dto';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { Roles } from './decorators/roles.decorator';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiBearerAuth()
   @Public()
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
+  @ApiOperation({
+    summary: 'Login user',
+    description: 'Authenticate user and return access and refresh tokens',
+  })
+  @ApiOkResponse({
+    description: 'User successfully logged in',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid credentials',
+  })
   @Public()
   @Post('login')
   login(@Body() dto: LoginDto) {
