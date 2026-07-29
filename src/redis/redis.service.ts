@@ -1,51 +1,207 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient, RedisClientType } from 'redis';
+import Redis from 'ioredis';
 
 @Injectable()
-export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client: RedisClientType;
+export class RedisService implements OnModuleDestroy {
+  private readonly logger = new Logger(
+    RedisService.name,
+  );
 
-  constructor(private config: ConfigService) {
-    this.client = createClient({
-      url: this.config.get<string>('REDIS_URL'),
+  private readonly client?: Redis;
+
+
+  constructor(
+    private readonly config: ConfigService,
+  ) {
+    const redisUrl =
+      this.config.get<string>('REDIS_URL');
+
+
+    if (!redisUrl) {
+      this.logger.warn(
+        'REDIS_URL missing. Redis disabled.',
+      );
+
+      return;
+    }
+
+
+    this.client = new Redis(redisUrl, {
+
+      // reconnect automatically
+      retryStrategy: (times) => {
+
+        const delay = Math.min(
+          times * 1000,
+          10000,
+        );
+
+
+        this.logger.warn(
+          `Redis reconnecting in ${delay}ms`,
+        );
+
+
+        return delay;
+      },
+
+
+      // Do not block requests when Redis is down
+      enableOfflineQueue: false,
+
+
+      connectTimeout: 5000,
+
     });
 
-    this.client.on('error', (err) => {
-      console.error('Redis Error:', err);
-    });
+
+
+    this.client.on(
+      'connect',
+      () => {
+        this.logger.log(
+          'Redis connecting...',
+        );
+      },
+    );
+
+
+    this.client.on(
+      'ready',
+      () => {
+        this.logger.log(
+          'Redis ready',
+        );
+      },
+    );
+
+
+    this.client.on(
+      'reconnecting',
+      () => {
+        this.logger.warn(
+          'Redis reconnecting...',
+        );
+      },
+    );
+
+
+    this.client.on(
+      'error',
+      (error) => {
+        this.logger.warn(
+          `Redis error: ${error.message}`,
+        );
+      },
+    );
+
+
+    this.client.on(
+      'close',
+      () => {
+        this.logger.warn(
+          'Redis connection closed',
+        );
+      },
+    );
   }
 
-  async onModuleInit() {
-    await this.client.connect();
-    console.log('Redis Connected');
-  }
 
-  async onModuleDestroy() {
-    await this.client.quit();
-  }
 
-  getClient() {
-    return this.client;
-  }
+  async get(
+    key: string,
+  ): Promise<string | null> {
 
-  /** Set, get, and delete data in Redis. */
+    if (!this.client) {
+      return null;
+    }
 
-  async set(key: string, value: string, ttl?: number) {
-    if (ttl) {
-      await this.client.set(key, value, {
-        EX: ttl,
-      });
-    } else {
-      await this.client.set(key, value);
+
+    try {
+
+      return await this.client.get(key);
+
+    } catch {
+
+      return null;
+
     }
   }
 
-  async get(key: string): Promise<string | null> {
-    return await this.client.get(key);
+
+
+  async set(
+    key: string,
+    value: string,
+    ttl?: number,
+  ): Promise<void> {
+
+    if (!this.client) {
+      return;
+    }
+
+
+    try {
+
+      if (ttl) {
+
+        await this.client.set(
+          key,
+          value,
+          'EX',
+          ttl,
+        );
+
+      } else {
+
+        await this.client.set(
+          key,
+          value,
+        );
+
+      }
+
+
+    } catch {
+
+      // cache failure ignored
+
+    }
   }
 
-  async del(key: string): Promise<number> {
-    return await this.client.del(key);
+
+
+  async del(
+    key: string,
+  ): Promise<void> {
+
+    if (!this.client) {
+      return;
+    }
+
+
+    try {
+
+      await this.client.del(key);
+
+    } catch {
+
+    }
+  }
+
+
+
+  async onModuleDestroy() {
+
+    if (this.client) {
+
+      await this.client.quit();
+
+    }
   }
 }

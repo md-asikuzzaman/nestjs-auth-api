@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { ProductsService } from './products.service';
+import { CreateProductDto } from './dto/create-product.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -9,6 +10,12 @@ export class ProductsController {
   @Public()
   @Get()
   async getAllProducts() {
-    return { msg: 'This is a public route' };
+    return this.productsService.getAllProducts();
+  }
+
+  @Public()
+  @Post('create')
+  async createProduct(@Body() product: CreateProductDto) {
+    return this.productsService.createProduct(product);
   }
 }
