@@ -1,0 +1,8 @@
+export const CACHE_TTL = {
+  ONE_MINUTE: 60,
+  FIVE_MINUTES: 60 * 5,
+  TEN_MINUTES: 60 * 10,
+  THIRTY_MINUTES: 60 * 30,
+  ONE_HOUR: 60 * 60,
+  ONE_DAY: 60 * 60 * 24,
+};
