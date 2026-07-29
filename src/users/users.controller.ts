@@ -1,20 +1,13 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { UsersService } from './users.service';
-import type { Request } from 'express';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { Body, Controller, Get, Patch } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
-  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ChangePasswordDto, UpdateUserDto } from './dto/user.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 @ApiBearerAuth()
@@ -32,27 +25,20 @@ export class UsersController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized. Missing or invalid access token.',
   })
-  getUsers(@Req() req: Request) {
-    if (!req.user) {
-      throw new UnauthorizedException();
-    }
-
-    return this.usersService.getUserById(req.user.id);
+  getUsers(@CurrentUser('id') userId: string) {
+    return this.usersService.getUserById(userId);
   }
 
   @Patch('me')
-  updateUser() {
-    return { msg: 'This is the current user update route' };
+  updateUser(@CurrentUser('id') userId: string, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateUser(userId, dto);
   }
 
   @Patch('change-password')
-  changePassword() {
-    return { msg: 'This is the current user change password route' };
-  }
-
-  @Public()
-  @Get('profile')
-  getProfile() {
-    return { msg: 'This is the current user profile route' };
+  async changePassword(
+    @CurrentUser('id') userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return await this.usersService.changePassword(userId, dto);
   }
 }
