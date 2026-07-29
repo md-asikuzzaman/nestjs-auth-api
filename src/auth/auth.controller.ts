@@ -46,6 +46,9 @@ export class AuthController {
     summary: 'Logout user',
     description: 'Invalidate user session and remove tokens',
   })
+  @ApiOkResponse({
+    description: 'User successfully logged out',
+  })
   @ApiBearerAuth()
   @Post('logout')
   logout(@Req() req) {
