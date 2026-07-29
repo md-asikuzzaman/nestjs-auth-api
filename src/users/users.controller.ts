@@ -30,6 +30,7 @@ export class UsersController {
     return this.usersService.updateMe(userId, dto);
   }
 
+  /** Change the current user password */
   @ChangePasswordDocs()
   @ResponseMessage('Password changed successfully.')
   @Patch('change-password')

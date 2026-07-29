@@ -11,6 +11,10 @@ export class UsersService {
   getUserById(id: string) {
     return this.prisma.user.findUnique({
       where: { id: id },
+      omit: {
+        hashed_refresh_token: true,
+        hashedPassword: true,
+      },
     });
   }
 
