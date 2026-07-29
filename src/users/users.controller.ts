@@ -1,12 +1,13 @@
 import { Body, Controller, Get, Patch } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { ChangePasswordDto, UpdateUserDto } from './dto/user.dto';
+import {
+  ChangePasswordDocs,
+  GetMeDocs,
+  UpdateMeDocs,
+} from './swagger/user.docs';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -14,31 +15,28 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  /** Get the current user profile */
+  @GetMeDocs()
   @Get('me')
-  @ApiOperation({
-    summary: 'Get current user profile',
-    description: 'Returns the authenticated user profile.',
-  })
-  @ApiOkResponse({
-    description: 'User profile retrieved successfully.',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized. Missing or invalid access token.',
-  })
-  getUsers(@CurrentUser('id') userId: string) {
+  getMe(@CurrentUser('id') userId: string) {
     return this.usersService.getUserById(userId);
   }
 
+  /** Update the current user profile */
+  @UpdateMeDocs()
+  @ResponseMessage('User profile updated successfully.')
   @Patch('me')
-  updateUser(@CurrentUser('id') userId: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.updateUser(userId, dto);
+  updateMe(@CurrentUser('id') userId: string, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateMe(userId, dto);
   }
 
+  @ChangePasswordDocs()
+  @ResponseMessage('Password changed successfully.')
   @Patch('change-password')
-  async changePassword(
+  changePassword(
     @CurrentUser('id') userId: string,
     @Body() dto: ChangePasswordDto,
   ) {
-    return await this.usersService.changePassword(userId, dto);
+    return this.usersService.changePassword(userId, dto);
   }
 }

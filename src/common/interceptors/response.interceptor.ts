@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { map, Observable } from 'rxjs';
-import { RESPONSE_MESSAGE_KEY } from '../decorators/message.decorator';
+import { RESPONSE_MESSAGE_KEY } from '../decorators/response-message.decorator';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
